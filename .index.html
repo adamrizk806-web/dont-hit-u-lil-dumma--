@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>dont-hit-u-lil-dumma$$</title>
+    <style>
+        /* Zero out margins to prevent scrolling bugs */
+        * { box-sizing: border-box; }
+        body { margin: 0; background: #000; overflow: hidden; font-family: 'Courier New', monospace; color: #0f0; }
+        
+        /* Ensure canvas is always visible */
+        canvas { display: block; margin: 0 auto; background: #111; border: 2px solid #333; }
+
+        #ui { position: absolute; top: 10px; width: 100%; display: flex; justify-content: space-around; font-size: 18px; font-weight: bold; pointer-events: none; text-shadow: 2px 2px #000; z-index: 100; }
+        
+        #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; background: rgba(0,0,0,0.9); z-index: 200; overflow-y: auto; padding: 20px; }
+        h1 { color: #f0f; font-size: 20px; text-shadow: 2px 2px #0ff; }
+
+        .shop-sect { border: 2px solid #444; padding: 10px; margin: 10px; width: 100%; max-width: 350px; background: #050505; }
+        .btn { padding: 12px; margin: 5px; font-size: 12px; cursor: pointer; background: #111; border: 2px solid #0f0; color: #0f0; text-transform: uppercase; font-family: inherit; width: 140px; }
+        .btn:active { background: #0f0; color: #000; }
+        .owned { border-color: #f0f; color: #f0f; }
+
+        #controls { position: absolute; bottom: 20px; width: 100%; display: flex; justify-content: space-between; padding: 0 20px; z-index: 150; }
+        .t-btn { width: 80px; height: 80px; background: rgba(0,255,0,0.1); border: 3px solid #0f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #0f0; font-size: 30px; user-select: none; touch-action: none; }
+        #fireBtn { border-color: #f00; color: #f00; display: none; background: rgba(255,0,0,0.2); }
+        
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <div id="ui">
+        <div>SCORE: <span id="s-v">0</span></div>
+        <div>💰: <span id="c-v">0</span></div>
+        <div>❤️: <span id="l-v">1</span></div>
+    </div>
+
+    <div id="overlay">
+        <h1>DONT-HIT-U-LIL-DUMMA$$</h1>
+        <button class="btn" style="width: 250px; font-size: 18px; color: #f0f; border-color: #f0f;" onclick="startGame()">START RACE</button>
+        
+        <div class="shop-sect">
+            <p>ABILITIES (500💰 EACH)</p>
+            <button class="btn" id="up-fly" onclick="buyPower('fly')">FLY LICENSE</button>
+            <button class="btn" id="up-shield" onclick="buyPower('shield')">SHIELD TECH</button>
+            <button class="btn" id="up-gun" onclick="buyPower('gun')">GUN KIT</button>
+        </div>
+
+        <div class="shop-sect">
+            <p>GARAGE & REPAIR</p>
+            <button class="btn" onclick="buyLife()">+1 LIFE (300💰)</button>
+            <button class="btn" onclick="setCar(0)">RED ROD</button>
+            <button class="btn" id="car-1" onclick="buyCar(1, 150)">PURPLE (150💰)</button>
+            <button class="btn" id="car-2" onclick="buyCar(2, 200)">BLUE (200💰)</button>
+            <button class="btn" id="car-3" onclick="buyCar(3, 250)">GREEN (250💰)</button>
+        </div>
+    </div>
+
+    <div id="controls">
+        <div class="t-btn" id="lBtn">◀</div>
+        <div class="t-btn" id="fireBtn">🔥</div>
+        <div class="t-btn" id="rBtn">▶</div>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+<script>
+/** ENGINE START **/
+window.onload = function() {
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    
+    // Auto-sizing
+    canvas.width = Math.min(window.innerWidth, 400);
+    canvas.height = window.innerHeight;
+
+    /** SAVE DATA **/
+    let coins = parseInt(localStorage.getItem("dhu_coins_v3")) || 0;
+    let unlockedCars = JSON.parse(localStorage.getItem("dhu_cars_v3")) || [0];
+    let unlockedPowers = JSON.parse(localStorage.getItem("dhu_powers_v3")) || [];
+    let activeCar = 0, score = 0, lives = 1, gameState = "MENU";
+    
+    /** STATE **/
+    let gameSpeed = 7, playerX = canvas.width/2 - 25, playerY = canvas.height - 130;
+    let enemies = [], roadCoins = [], powerups = [], bullets = [];
+    let activeP = null, pTimer = 0;
+
+    const COLORS = [
+        {m: "#c0392b", d: "#7b241c", l: "#e74c3c"}, // Red
+        {m: "#8e44ad", d: "#5b2c6f", l: "#a569bd"}, // Purp
+        {m: "#2980b9", d: "#1a5276", l: "#5499c7"}, // Blue
+        {m: "#27ae60", d: "#186a3b", l: "#58d68d"}  // Green
+    ];
+
+    /** INPUTS **/
+    const keys = {};
+    window.onkeydown = (e) => { keys[e.code] = true; if(e.code==='Space') shoot(); };
+    window.onkeyup = (e) => keys[e.code] = false;
+
+    let tL = false, tR = false;
+    document.getElementById("lBtn").onpointerdown = (e) => { e.preventDefault(); tL = true; };
+    document.getElementById("lBtn").onpointerup = () => tL = false;
+    document.getElementById("rBtn").onpointerdown = (e) => { e.preventDefault(); tR = true; };
+    document.getElementById("rBtn").onpointerup = () => tR = false;
+    document.getElementById("fireBtn").onpointerdown = (e) => { e.preventDefault(); shoot(); };
+
+    /** FUNCTIONS **/
+    window.buyPower = function(p) {
+        if(unlockedPowers.includes(p)) return;
+        if(coins >= 500) { coins -= 500; unlockedPowers.push(p); save(); updateUI(); }
+        else alert("LIL DUMMA$$ IS BROKE! NEED 500.");
+    };
+
+    window.buyCar = function(i, cost) {
+        if(unlockedCars.includes(i)) { activeCar = i; updateUI(); return; }
+        if(coins >= cost) { coins -= cost; unlockedCars.push(i); activeCar = i; save(); updateUI(); }
+    };
+
+    window.buyLife = function() {
+        if(coins >= 300) { coins -= 300; lives++; save(); updateUI(); }
+    };
+
+    window.setCar = function(i) { activeCar = i; updateUI(); };
+
+    function save() {
+        localStorage.setItem("dhu_coins_v3", coins);
+        localStorage.setItem("dhu_cars_v3", JSON.stringify(unlockedCars));
+        localStorage.setItem("dhu_powers_v3", JSON.stringify(unlockedPowers));
+    }
+
+    function updateUI() {
+        document.getElementById("s-v").innerText = score;
+        document.getElementById("c-v").innerText = coins;
+        document.getElementById("l-v").innerText = lives;
+        document.getElementById("fireBtn").style.display = (activeP === 'gun') ? 'flex' : 'none';
+        unlockedPowers.forEach(p => document.getElementById("up-"+p).classList.add("owned"));
+        unlockedCars.forEach(i => { if(document.getElementById("car-"+i)) document.getElementById("car-"+i).classList.add("owned"); });
+    }
+
+    window.startGame = function() {
+        document.getElementById("overlay").classList.add("hidden");
+        score = 0; enemies = []; roadCoins = []; powerups = []; bullets = [];
+        gameSpeed = 7; playerX = canvas.width/2 - 25; playerY = canvas.height - 130;
+        activeP = null; pTimer = 0;
+        gameState = "PLAYING";
+        updateUI();
+    };
+
+    function shoot() { if(activeP === 'gun') bullets.push({x: playerX + 22, y: playerY}); }
+
+    function drawCar(x, y, index, isPlayer) {
+        const c = COLORS[index];
+        const w = 50, h = 80;
+        // Body Layers
+        ctx.fillStyle = c.d; ctx.fillRect(x, y, w, h); // Base
+        ctx.fillStyle = c.m; ctx.fillRect(x+4, y+2, w-8, h-4); // Main
+        ctx.fillStyle = "#222"; ctx.fillRect(x+8, y+15, w-16, 20); // Window
+        ctx.fillStyle = isPlayer ? "#ff0000" : "#ffff00"; // Lights
+        if(isPlayer) ctx.fillRect(x+5, y+h-5, 10, 4), ctx.fillRect(x+w-15, y+h-5, 10, 4);
+        else ctx.fillRect(x+5, y+2, 10, 4), ctx.fillRect(x+w-15, y+2, 10, 4);
+        
+        if(isPlayer && activeP === 'shield') {
+            ctx.strokeStyle = "#0ff"; ctx.lineWidth = 4; ctx.strokeRect(x-5, y-5, w+10, h+10);
+        }
+    }
+
+    function loop() {
+        ctx.fillStyle = "#111"; ctx.fillRect(0,0,canvas.width, canvas.height);
+        ctx.fillStyle = "#333"; ctx.fillRect(20,0,canvas.width-40, canvas.height);
+        
+        // Road Lines
+        ctx.fillStyle = score > 2000 ? "#f0f" : "#fff";
+        for(let i=-100; i<canvas.height; i+=80) {
+            ctx.fillRect(canvas.width/2 - 4, (i + Date.now()/10) % (canvas.height+100), 8, 40);
+        }
+
+        if (gameState === "PLAYING") {
+            if ((keys['ArrowLeft'] || tL) && playerX > 25) playerX -= 8;
+            if ((keys['ArrowRight'] || tR) && playerX < canvas.width - 75) playerX += 8;
+
+            if(pTimer > 0) {
+                pTimer--;
+                if(activeP === 'fly') playerY = canvas.height - 250;
+            } else { activeP = null; playerY = canvas.height - 130; }
+
+            drawCar(playerX, playerY, activeCar, true);
+
+            // Spawn logic
+            if (Math.random() < 0.03) enemies.push({x: Math.random()*(canvas.width-80)+20, y: -100, s: Math.floor(Math.random()*4)});
+            if (Math.random() < 0.015) roadCoins.push({x: Math.random()*(canvas.width-60)+30, y: -50});
+            if (Math.random() < 0.005 && unlockedPowers.length > 0) {
+                powerups.push({x: Math.random()*(canvas.width-60)+30, y: -50, t: unlockedPowers[Math.floor(Math.random()*unlockedPowers.length)]});
+            }
+
+            // Bullet logic
+            bullets.forEach((b, bi) => {
+                b.y -= 15; ctx.fillStyle = "#f00"; ctx.fillRect(b.x, b.y, 6, 15);
+                enemies.forEach((en, ei) => {
+                    if(b.x < en.x + 50 && b.x + 6 > en.x && b.y < en.y + 80) {
+                        enemies.splice(ei, 1); bullets.splice(bi, 1); score += 50; updateUI();
+                    }
+                });
+            });
+
+            // Enemy logic
+            enemies.forEach((en, i) => {
+                en.y += gameSpeed;
+                drawCar(en.x, en.y, en.s, false);
+                if (en.y > canvas.height) { enemies.splice(i, 1); score += 10; updateUI(); }
+                if (activeP !== 'fly' && activeP !== 'shield') {
+                    if (playerX < en.x + 40 && playerX + 40 > en.x && playerY < en.y + 70 && playerY + 70 > en.y) {
+                        if(lives > 1) { lives--; enemies.splice(i,1); updateUI(); }
+                        else { gameState = "MENU"; document.getElementById("overlay").classList.remove("hidden"); save(); }
+                    }
+                }
+            });
+
+            // Coin & Powerup logic
+            roadCoins.forEach((c, i) => {
+                c.y += gameSpeed; ctx.fillStyle = "#ff0"; ctx.fillRect(c.x, c.y, 15, 15);
+                if (playerX < c.x + 20 && playerX + 45 > c.x && playerY < c.y + 20 && playerY + 80 > c.y) {
+                    coins += 5; roadCoins.splice(i, 1); updateUI();
+                }
+            });
+
+            powerups.forEach((p, i) => {
+                p.y += gameSpeed;
+                ctx.fillStyle = p.t === 'fly' ? '#0ff' : p.t === 'shield' ? '#0f0' : '#f00';
+                ctx.beginPath(); ctx.arc(p.x, p.y, 12, 0, Math.PI*2); ctx.fill();
+                if (playerX < p.x + 20 && playerX + 45 > p.x && playerY < p.y + 20 && playerY + 80 > p.y) {
+                    activeP = p.t; pTimer = 900; powerups.splice(i, 1); updateUI();
+                }
+            });
+
+            if(score > 2000) gameSpeed = 15; else gameSpeed += 0.0015;
+        }
+        requestAnimationFrame(loop);
+    }
+    updateUI();
+    loop();
+};
+</script>
+</body>
+</html>
