@@ -2,70 +2,33 @@
 <html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>dont-hit-u-lil-dumma$$</title>
+    <title>Retro Racer Pro</title>
     <style>
-        body { margin: 0; background: #000; overflow: hidden; font-family: 'Courier New', monospace; touch-action: manipulation; color: #0f0; }
-        canvas { display: block; margin: 0 auto; background: #111; image-rendering: pixelated; border-left: 2px solid #333; border-right: 2px solid #333; }
-        
-        #ui { position: absolute; top: 10px; width: 100%; display: flex; justify-content: space-around; font-size: 16px; font-weight: bold; pointer-events: none; text-shadow: 2px 2px #000; z-index: 5; }
-        #power-timer { position: absolute; top: 40px; width: 100%; text-align: center; color: #f0f; font-weight: bold; }
-
-        #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; background: rgba(0,0,0,0.92); z-index: 10; text-align: center; overflow-y: auto; padding-top: 20px; }
-        h1 { color: #f0f; font-size: 24px; text-shadow: 2px 2px #0ff; margin-bottom: 10px; }
-        
-        .shop-sect { border: 2px solid #444; padding: 10px; margin: 8px; width: 90%; max-width: 380px; background: #0a0a0a; }
-        .btn { padding: 10px; margin: 4px; font-size: 12px; cursor: pointer; background: #111; border: 2px solid #0f0; color: #0f0; text-transform: uppercase; width: 140px; font-family: inherit; }
-        .btn:hover { background: #0f0; color: #000; }
-        .btn-owned { border-color: #f0f; color: #f0f; }
-
-        #controls { position: absolute; bottom: 20px; width: 100%; display: flex; justify-content: space-between; padding: 0 25px; box-sizing: border-box; }
-        .t-btn { width: 70px; height: 70px; background: rgba(0,255,0,0.1); border: 2px solid #0f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #0f0; font-size: 28px; pointer-events: auto; user-select: none; }
-        #fireBtn { border-color: #f00; color: #f00; display: none; background: rgba(255,0,0,0.2); }
-        
+        body { margin: 0; background: #000; overflow: hidden; font-family: 'Courier New', monospace; touch-action: manipulation; }
+        canvas { display: block; margin: 0 auto; background: #222; }
+        #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #0f0; background: rgba(0,0,0,0.9); z-index: 10; text-align: center; }
+        .btn { padding: 15px 30px; margin: 10px; font-size: 20px; cursor: pointer; background: #000; border: 2px solid #0f0; color: #0f0; }
+        #stats { position: absolute; top: 10px; width: 100%; display: flex; justify-content: space-around; color: #0f0; font-size: 20px; pointer-events: none; }
+        #controls { position: absolute; bottom: 20px; width: 100%; display: flex; justify-content: space-between; padding: 0 30px; box-sizing: border-box; }
+        .touch-btn { width: 80px; height: 80px; background: rgba(0,255,0,0.1); border: 2px solid #0f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #0f0; font-size: 30px; pointer-events: auto; }
         .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-    <div id="ui">
-        <div>SCORE: <span id="s-v">0</span></div>
-        <div>💰: <span id="c-v">0</span></div>
-        <div>❤️: <span id="l-v">1</span></div>
+    <div id="stats">
+        <div>SCORE: <span id="s-val">0</span></div>
+        <div>COINS: <span id="c-val">0</span></div>
     </div>
-    <div id="power-timer"></div>
 
     <div id="overlay">
-        <h1>DONT-HIT-U-LIL-DUMMA$$</h1>
-        <button class="btn" style="width: 280px; font-size: 18px; border-color: #f0f; color: #f0f;" onclick="startGame()">START RACE</button>
-        
-        <div class="shop-sect">
-            <p style="margin: 5px;">ABILITIES (500💰 EACH)</p>
-            <button class="btn" id="up-fly" onclick="buyPower('fly')">FLY LICENSE</button>
-            <button class="btn" id="up-shield" onclick="buyPower('shield')">SHIELD TECH</button>
-            <button class="btn" id="up-gun" onclick="buyPower('gun')">GUN KIT</button>
-        </div>
-
-        <div class="shop-sect">
-            <p style="margin: 5px;">REPAIRS & CARS</p>
-            <button class="btn" onclick="buyLife()">+1 LIFE (300💰)</button>
-            <button class="btn" id="car-0" onclick="setCar(0)">RED ROD</button>
-            <button class="btn" id="car-1" onclick="buyCar(1, 150)">PURPLE (150💰)</button>
-            <button class="btn" id="car-2" onclick="buyCar(2, 200)">BLUE (200💰)</button>
-            <button class="btn" id="car-3" onclick="buyCar(3, 250)">GREEN (250💰)</button>
-        </div>
-
-        <div class="shop-sect">
-            <p style="margin: 5px;">MAPS</p>
-            <button class="btn" onclick="activeMap='city'">CITY NIGHT</button>
-            <button class="btn" onclick="activeMap='desert'">DUST ROAD</button>
-            <button class="btn" onclick="activeMap='cyber'">NEON GRID</button>
-        </div>
+        <h1>RETRO RACER</h1>
+        <button class="btn" onclick="startGame()">START GAME</button>
     </div>
 
     <div id="controls">
-        <div class="t-btn" id="lBtn">◀</div>
-        <div class="t-btn" id="fireBtn">🔥</div>
-        <div class="t-btn" id="rBtn">▶</div>
+        <div class="touch-btn" id="lBtn">◀</div>
+        <div class="touch-btn" id="rBtn">▶</div>
     </div>
 
     <canvas id="gameCanvas"></canvas>
@@ -76,211 +39,77 @@ const ctx = canvas.getContext("2d");
 canvas.width = Math.min(window.innerWidth, 400);
 canvas.height = window.innerHeight;
 
-/** PERSISTENT DATA **/
-let coins = parseInt(localStorage.getItem("dhu_coins")) || 0;
-let unlockedCars = JSON.parse(localStorage.getItem("dhu_cars")) || [0];
-let unlockedPowers = JSON.parse(localStorage.getItem("dhu_powers")) || [];
-let activeCar = 0, activeMap = 'city', lives = 1, score = 0;
-
-/** ENGINE VARS **/
-let gameState = "MENU", gameSpeed = 7, playerX = canvas.width/2 - 25, playerY = canvas.height - 130;
-let enemies = [], roadCoins = [], powerups = [], bullets = [];
-let activeP = null, pTimer = 0;
-
-const CAR_COLORS = [
-    { main: "#c0392b", dark: "#7b241c", light: "#e74c3c" }, // Red
-    { main: "#8e44ad", dark: "#5b2c6f", light: "#a569bd" }, // Purple
-    { main: "#2980b9", dark: "#1a5276", light: "#5499c7" }, // Blue
-    { main: "#27ae60", dark: "#186a3b", light: "#58d68d" }  // Green
-];
-
-const MAPS = {
-    city: { r: "#333", l: "#fff", s: "#111" },
-    desert: { r: "#c2a37e", l: "#fff", s: "#edc9af" },
-    cyber: { r: "#1a1a2e", l: "#0f0", s: "#000" }
-};
-
-/** INPUTS **/
+let score = 0, coins = 0, gameState = "MENU", gameSpeed = 7, playerX = 175;
+let enemies = [], roadCoins = [];
 const keys = {};
-window.addEventListener('keydown', e => { keys[e.code] = true; if(e.code==='Space') shoot(); });
+
+window.addEventListener('keydown', e => keys[e.code] = true);
 window.addEventListener('keyup', e => keys[e.code] = false);
 
 let tL = false, tR = false;
-const setupTouch = (id, stateVar) => {
-    const el = document.getElementById(id);
-    el.addEventListener('pointerdown', (e) => { e.preventDefault(); if(id==='lBtn') tL=true; if(id==='rBtn') tR=true; });
-    el.addEventListener('pointerup', (e) => { e.preventDefault(); if(id==='lBtn') tL=false; if(id==='rBtn') tR=false; });
-    el.addEventListener('pointerleave', (e) => { e.preventDefault(); if(id==='lBtn') tL=false; if(id==='rBtn') tR=false; });
-};
-setupTouch('lBtn'); setupTouch('rBtn');
-document.getElementById("fireBtn").addEventListener('pointerdown', (e) => { e.preventDefault(); shoot(); });
-
-/** SHOP **/
-function buyPower(p) {
-    if(unlockedPowers.includes(p)) return;
-    if(coins >= 500) { coins -= 500; unlockedPowers.push(p); save(); updateUI(); }
-    else alert("POOR DUMMA$$! NEED 500.");
-}
-function buyCar(i, cost) {
-    if(unlockedCars.includes(i)) { activeCar = i; updateUI(); return; }
-    if(coins >= cost) { coins -= cost; unlockedCars.push(i); activeCar = i; save(); updateUI(); }
-}
-function buyLife() { if(coins >= 300) { coins += 0; coins -= 300; lives++; save(); updateUI(); } }
-function setCar(i) { activeCar = i; updateUI(); }
-function save() { 
-    localStorage.setItem("dhu_coins", coins); 
-    localStorage.setItem("dhu_cars", JSON.stringify(unlockedCars));
-    localStorage.setItem("dhu_powers", JSON.stringify(unlockedPowers));
-}
-
-function updateUI() {
-    document.getElementById("s-v").innerText = score;
-    document.getElementById("c-v").innerText = coins;
-    document.getElementById("l-v").innerText = lives;
-    document.getElementById("fireBtn").style.display = (activeP === 'gun') ? 'flex' : 'none';
-    unlockedPowers.forEach(p => document.getElementById("up-"+p).classList.add("btn-owned"));
-    unlockedCars.forEach(i => {
-        const el = document.getElementById("car-"+i);
-        if(el) { el.classList.add("btn-owned"); if(i>0) el.innerText = "OWNED"; }
-    });
-}
-
-function shoot() { if(activeP === 'gun') bullets.push({x: playerX + 20, y: playerY}); }
+document.getElementById("lBtn").ontouchstart = (e) => { e.preventDefault(); tL = true; };
+document.getElementById("lBtn").ontouchend = () => tL = false;
+document.getElementById("rBtn").ontouchstart = (e) => { e.preventDefault(); tR = true; };
+document.getElementById("rBtn").ontouchend = () => tR = false;
 
 function startGame() {
     document.getElementById("overlay").classList.add("hidden");
-    score = 0; enemies = []; roadCoins = []; powerups = []; bullets = [];
-    gameSpeed = 7; playerX = canvas.width/2 - 25; playerY = canvas.height - 130;
-    activeP = null; pTimer = 0;
+    score = 0; enemies = []; roadCoins = []; gameSpeed = 7;
     gameState = "PLAYING";
-    updateUI();
 }
 
-/** REALISTIC RETRO CAR DRAWING **/
-function drawRealisticCar(x, y, index, isPlayer) {
-    const colors = CAR_COLORS[index];
-    const w = 50, h = 80;
-
-    // Body Shadow
-    ctx.fillStyle = "rgba(0,0,0,0.4)";
-    ctx.fillRect(x + 4, y + 4, w, h);
-
-    // Main Chassis
-    ctx.fillStyle = colors.main;
-    ctx.fillRect(x, y + 10, w, h - 20); // Center body
-    
-    // Hood and Trunk (Tapered)
-    ctx.fillStyle = colors.dark;
-    ctx.fillRect(x + 5, y, w - 10, 15); // Front Hood
-    ctx.fillRect(x + 5, y + h - 15, w - 10, 15); // Rear Trunk
-
-    // Roof
-    ctx.fillStyle = colors.light;
-    ctx.fillRect(x + 8, y + 25, w - 16, 30);
-
-    // Windshields
-    ctx.fillStyle = "#111";
-    ctx.fillRect(x + 10, y + 18, w - 20, 8); // Front glass
-    ctx.fillRect(x + 10, y + 54, w - 20, 6); // Rear glass
-
-    // Wheels
-    ctx.fillStyle = "#111";
-    ctx.fillRect(x - 4, y + 12, 6, 15); ctx.fillRect(x + w - 2, y + 12, 6, 15);
-    ctx.fillRect(x - 4, y + 55, 6, 15); ctx.fillRect(x + w - 2, y + 55, 6, 15);
-
-    // Lights
-    if(!isPlayer) {
-        ctx.fillStyle = "#ffff00"; // Enemy Headlights
-        ctx.fillRect(x + 8, y, 8, 4); ctx.fillRect(x + w - 16, y, 8, 4);
-    } else {
-        ctx.fillStyle = "#ff0000"; // Player Taillights
-        ctx.fillRect(x + 8, y + h - 4, 10, 4); ctx.fillRect(x + w - 18, y + h - 4, 10, 4);
-        // Shield Effect
-        if(activeP === 'shield') {
-            ctx.strokeStyle = "#0ff"; ctx.lineWidth = 3;
-            ctx.strokeRect(x - 6, y - 6, w + 12, h + 12);
-        }
-    }
+function drawCar(x, y, color) {
+    ctx.fillStyle = color;
+    ctx.fillRect(x, y, 50, 80);
+    ctx.fillStyle = "#333"; // windshield
+    ctx.fillRect(x + 5, y + 15, 40, 25);
+    ctx.fillStyle = "#0ff";
+    ctx.fillRect(x + 8, y + 18, 34, 19);
 }
 
 function loop() {
-    const m = MAPS[activeMap];
-    ctx.fillStyle = m.s; ctx.fillRect(0,0,canvas.width, canvas.height);
-    ctx.fillStyle = m.r; ctx.fillRect(20,0,canvas.width-40, canvas.height);
-
-    // Road lines
-    ctx.fillStyle = score > 2000 ? "#f00" : m.l;
-    for(let i=-100; i<canvas.height; i+=80) {
-        ctx.fillRect(canvas.width/2 - 4, (i + Date.now()/10) % (canvas.height+100), 8, 40);
+    ctx.fillStyle = "#222";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Road Lines
+    ctx.fillStyle = "#fff";
+    for(let i=0; i<canvas.height; i+=80) {
+        ctx.fillRect(canvas.width/2 - 5, (i + Date.now()/15) % canvas.height, 10, 40);
     }
 
     if (gameState === "PLAYING") {
-        if ((keys['ArrowLeft'] || tL) && playerX > 25) playerX -= 8;
-        if ((keys['ArrowRight'] || tR) && playerX < canvas.width - 75) playerX += 8;
+        if ((keys['ArrowLeft'] || tL) && playerX > 10) playerX -= 8;
+        if ((keys['ArrowRight'] || tR) && playerX < canvas.width - 60) playerX += 8;
 
-        if(pTimer > 0) {
-            pTimer--;
-            document.getElementById("power-timer").innerText = activeP.toUpperCase() + ": " + Math.ceil(pTimer/60) + "s";
-            if(activeP === 'fly') playerY = canvas.height - 280;
-        } else { activeP = null; playerY = canvas.height - 130; document.getElementById("power-timer").innerText = ""; }
+        drawCar(playerX, canvas.height - 120, "#e74c3c");
 
-        drawRealisticCar(playerX, playerY, activeCar, true);
-
-        // Spawning
-        if (Math.random() < 0.03 + (score/15000)) enemies.push({x: Math.random()*(canvas.width-80)+20, y: -100, s: Math.floor(Math.random()*4)});
-        if (Math.random() < 0.015) roadCoins.push({x: Math.random()*(canvas.width-60)+30, y: -50});
-        if (Math.random() < 0.004 && unlockedPowers.length > 0) {
-            powerups.push({x: Math.random()*(canvas.width-60)+30, y: -50, t: unlockedPowers[Math.floor(Math.random()*unlockedPowers.length)]});
-        }
-
-        bullets.forEach((b, bi) => {
-            b.y -= 15; ctx.fillStyle = "#f00"; ctx.fillRect(b.x, b.y, 8, 15);
-            enemies.forEach((en, ei) => {
-                if(b.x < en.x + 50 && b.x + 8 > en.x && b.y < en.y + 80) {
-                    enemies.splice(ei, 1); bullets.splice(bi, 1); score += 50; updateUI();
-                }
-            });
-        });
+        if (Math.random() < 0.02) enemies.push({x: Math.random()*(canvas.width-60), y: -100});
+        if (Math.random() < 0.01) roadCoins.push({x: Math.random()*(canvas.width-30), y: -50});
 
         enemies.forEach((en, i) => {
             en.y += gameSpeed;
-            drawRealisticCar(en.x, en.y, en.s, false);
-            if (en.y > canvas.height) { enemies.splice(i, 1); score += 10; updateUI(); }
-            // Collision (Tightened hitbox for fairness)
-            if (activeP !== 'fly' && activeP !== 'shield') {
-                if (playerX + 5 < en.x + 45 && playerX + 45 > en.x + 5 && playerY + 5 < en.y + 75 && playerY + 75 > en.y + 5) {
-                    if(lives > 1) { lives--; enemies.splice(i,1); }
-                    else {
-                        gameState = "MENU";
-                        document.getElementById("overlay").classList.remove("hidden");
-                        save();
-                    }
-                }
+            drawCar(en.x, en.y, "#3498db");
+            if (en.y > canvas.height) { enemies.splice(i, 1); score += 10; }
+            if (playerX < en.x + 40 && playerX + 40 > en.x && canvas.height-120 < en.y + 70 && canvas.height-120+70 > en.y) {
+                gameState = "MENU";
+                document.getElementById("overlay").classList.remove("hidden");
             }
         });
 
         roadCoins.forEach((c, i) => {
             c.y += gameSpeed;
-            ctx.fillStyle = "#ff0"; ctx.fillRect(c.x, c.y, 16, 16);
-            if (playerX < c.x + 20 && playerX + 50 > c.x && playerY < c.y + 20 && playerY + 80 > c.y) {
-                coins += 5; roadCoins.splice(i, 1); updateUI();
+            ctx.fillStyle = "#ff0"; ctx.fillRect(c.x, c.y, 15, 15);
+            if (playerX < c.x + 20 && playerX + 40 > c.x && canvas.height-120 < c.y + 20) {
+                coins++; roadCoins.splice(i, 1);
             }
         });
-
-        powerups.forEach((p, i) => {
-            p.y += gameSpeed;
-            ctx.fillStyle = p.t === 'fly' ? '#0ff' : p.t === 'shield' ? '#0f0' : '#f00';
-            ctx.beginPath(); ctx.arc(p.x, p.y, 12, 0, Math.PI*2); ctx.fill();
-            if (playerX < p.x + 20 && playerX + 50 > p.x && playerY < p.y + 20 && playerY + 80 > p.y) {
-                activeP = p.t; pTimer = 900; powerups.splice(i, 1); updateUI();
-            }
-        });
-
-        if(score > 2000) gameSpeed = 15; else gameSpeed += 0.0015;
+        
+        document.getElementById("s-val").innerText = score;
+        document.getElementById("c-val").innerText = coins;
+        gameSpeed += 0.001;
     }
     requestAnimationFrame(loop);
 }
-updateUI();
 loop();
 </script>
 </body>
